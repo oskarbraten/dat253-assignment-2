@@ -1,7 +1,6 @@
 ﻿// Fra https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html
 //https://msdn.microsoft.com/en-us/library/windows/desktop/bb509640(v=vs.85).aspx
 //https://msdn.microsoft.com/en-us/library/windows/desktop/ff471421(v=vs.85).aspx
-// rand num generator http://gamedev.stackexchange.com/questions/32681/random-number-hlsl
 // http://www.reedbeta.com/blog/2013/01/12/quick-and-easy-gpu-random-numbers-in-d3d11/
 // https://docs.unity3d.com/Manual/RenderDocIntegration.html
 // https://docs.unity3d.com/Manual/SL-ShaderPrograms.html
@@ -17,6 +16,7 @@ Shader "Unlit/SingleColor"
 			#pragma fragment frag
 
 			typedef vector <float, 3> vec3;  // to get more similar code to book
+			typedef vector <float, 2> vec2;
 			typedef vector <fixed, 3> col3;
 	
 			struct appdata
@@ -29,6 +29,7 @@ Shader "Unlit/SingleColor"
 			{
 				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
+
 			};
 	
 			v2f vert(appdata v)
@@ -42,17 +43,34 @@ Shader "Unlit/SingleColor"
 			static const uint MAXIMUM_DEPTH = 25;
 			static const uint NUMBER_OF_SAMPLES = 20;
 
-			float2 rand_seed = float2(0.0, 0.0);
+			static float rand_seed = 12.0;
+			static float2 rand_uv = float2(0.0, 0.0);
 
-			float rand() {
-				float2 noise = (frac(sin(dot(rand_seed, float2(12.9898, 78.233) * 2.0)) * 43758.5453));
-				return abs(noise.x + noise.y) * 0.5;
+			// Gold Noise ©2015 dcerisano@standard3d.com
+			// - based on the Golden Ratio, PI and the Square Root of Two
+			// - superior distribution
+			// - fastest static noise generator function
+			// - works with all chipsets (including low precision)
+
+			static const float PHI = 1.61803398874989484820459 * 00000.1; // Golden Ratio   
+			static const float PI = 3.14159265358979323846264 * 00000.1; // PI
+			static const float SQ2 = 1.41421356237309504880169 * 10000.0; // Square Root of Two
+
+			float gold_noise(in vec2 coordinate, in float seed) {
+				return frac(sin(distance(coordinate * (seed + PHI), vec2(PHI, PI))) * SQ2);
+			}
+
+			static float random_number() {
+				float random = gold_noise(rand_uv, rand_seed);
+				rand_seed += 1.0;
+
+				return random;
 			}
 
 			vec3 random_in_unit_sphere() {
 				vec3 p;
 				do {
-					p = 2.0 * vec3(rand(), rand(), rand()) - vec3(1.0, 1.0, 1.0);
+					p = 2.0 * vec3(random_number(), random_number(), random_number()) - vec3(1.0, 1.0, 1.0);
 				} while (dot(p, p) >= 1.0);
 				return p;
 			}
@@ -95,8 +113,8 @@ Shader "Unlit/SingleColor"
 					camera c;
 
 					c.lower_left_corner = vec3(-2, -1, -1);
-					c.horizontal = vec3(4, 0, 0);
-					c.vertical = vec3(0, 2, 0);
+					c.horizontal = vec3(4.0, 0, 0);
+					c.vertical = vec3(0, 2.0, 0);
 					c.origin = vec3(0, 0, 0);
 
 					return c;
@@ -203,13 +221,15 @@ Shader "Unlit/SingleColor"
 
 				float u = i.uv.x;
 				float v = i.uv.y;
-
-				rand_seed = float2(u, v); // initialize random generator seed. TODO: fix random number generator.
+				rand_uv = float2(u, v); // initialize random generator seed.
 
 				col3 col = col3(0.0, 0.0, 0.0);
 
 				for (uint i = 0; i < NUMBER_OF_SAMPLES; i++) {
-					ray r = cam.get_ray(u, v);
+					float du = random_number() / _ScreenParams.x;
+					float dv = random_number() / _ScreenParams.y;
+
+					ray r = cam.get_ray(u + du, v + dv);
 					col += col3(trace(r));
 				}
 
