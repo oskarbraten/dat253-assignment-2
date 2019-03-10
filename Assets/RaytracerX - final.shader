@@ -1,11 +1,4 @@
-﻿// Fra https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html
-//https://msdn.microsoft.com/en-us/library/windows/desktop/bb509640(v=vs.85).aspx
-//https://msdn.microsoft.com/en-us/library/windows/desktop/ff471421(v=vs.85).aspx
-// http://www.reedbeta.com/blog/2013/01/12/quick-and-easy-gpu-random-numbers-in-d3d11/
-// https://docs.unity3d.com/Manual/RenderDocIntegration.html
-// https://docs.unity3d.com/Manual/SL-ShaderPrograms.html
-
-Shader "Unlit/SingleColor"
+﻿Shader "Unlit/SingleColor"
 {
 	SubShader
 	{
@@ -21,6 +14,7 @@ Shader "Unlit/SingleColor"
 			typedef vector <float, 3> vec3;
 			typedef vector <float, 2> vec2;
 			typedef vector <fixed, 3> col3;
+			typedef vector <fixed, 4> col4;
 	
 			struct appdata
 			{
@@ -42,29 +36,23 @@ Shader "Unlit/SingleColor"
 				return o;
 			}
 
-			static const uint MAXIMUM_DEPTH = 40;
-			static const uint NUMBER_OF_SAMPLES = 50;
+			static const uint MAXIMUM_DEPTH = 25;
+			static const uint NUMBER_OF_SAMPLES = 10;
+
+			static const uint MAX_NUMBER_OF_SPHERES = 500; // do not modify.
 
 			static float rand_seed = 12.0;
 			static float2 rand_uv = float2(0.0, 0.0);
 
-			// Gold Noise ©2015 dcerisano@standard3d.com
-			// - based on the Golden Ratio, PI and the Square Root of Two
-			// - superior distribution
-			// - fastest static noise generator function
-			// - works with all chipsets (including low precision)
-
-			static const float PHI = 1.61803398874989484820459 * 00000.1; // Golden Ratio   
-			static const float PI = 3.14159265358979323846264 * 00000.1;  // PI
-			static const float SQ2 = 1.41421356237309504880169 * 10000.0; // Square Root of Two
-
-			float gold_noise(in vec2 coordinate, in float seed) {
-				return frac(sin(distance(coordinate * (seed + PHI), vec2(PHI, PI))) * SQ2);
+			float noise(in vec2 coordinate) {
+				float2 noise = frac(sin(dot(coordinate, float2(12.9898, 78.233) * 2.0)) * 43758.5453);
+				return abs(noise.x + noise.y) * 0.5;
 			}
 
 			static float random_number() {
-				float random = gold_noise(rand_uv, rand_seed);
-				rand_seed += 1.0;
+				float2 uv = float2(rand_uv.x + rand_seed, rand_uv.y + rand_seed);
+				float random = noise(uv);
+				rand_seed += 0.21342;
 
 				return random;
 			}
@@ -123,7 +111,8 @@ Shader "Unlit/SingleColor"
 
 			static const float M_PI = 3.14159265f;
 
-			struct camera {
+			struct camera
+			{
 				vec3 origin;
 				vec3 horizontal;
 				vec3 vertical;
@@ -155,12 +144,23 @@ Shader "Unlit/SingleColor"
 				}
 			};
 
+			uint _NumberOfSpheres;
+
+			float4 _SpherePosition[MAX_NUMBER_OF_SPHERES];
+			float _SphereRadius[MAX_NUMBER_OF_SPHERES];
+
+			fixed4 _SphereMaterialAlbedo[MAX_NUMBER_OF_SPHERES];
+			float _SphereMaterialType[MAX_NUMBER_OF_SPHERES];
+			float _SphereMaterialFuzz[MAX_NUMBER_OF_SPHERES];
+			float _SphereMaterialRefractiveIndex[MAX_NUMBER_OF_SPHERES];
+
 			struct sphere
 			{
-				vec3 center;
-				float radius;
+				static bool intersect(uint index, ray r, float t_min, float t_max, out hit_record record) {
 
-				bool intersect(ray r, float t_min, float t_max, out hit_record record) {
+					vec3 center = _SpherePosition[index];
+					float radius = _SphereRadius[index];
+
 					record.index = 0;
 
 					vec3 oc = r.origin - center;
@@ -189,24 +189,20 @@ Shader "Unlit/SingleColor"
 					return false;
 				}
 
-				/* Material */
-				static const uint DIFFUSE = 0;
-				static const uint METAL = 1;
-				static const uint DIELECTRIC = 2;
+				static bool scatter(uint index, ray r, hit_record record, out vec3 attenuation, out ray scattered) {
 
-				vec3 albedo;
-				uint type; /* 0: diffuse, 1: metal, 2: dielectric*/
-				float fuzz;
-				float refractive_index;
+					vec3 albedo = _SphereMaterialAlbedo[index];
+					uint type = (uint) _SphereMaterialType[index];
+					float fuzz = _SphereMaterialFuzz[index];
+					float refractive_index = _SphereMaterialRefractiveIndex[index];
 
-				bool scatter(ray r, hit_record record, out vec3 attenuation, out ray scattered) {
-					if (this.type == 1) {
+					if (type == 1) {
 						vec3 reflected = reflect(normalize(r.direction), record.normal);
 						scattered = ray::from(record.position, reflected + fuzz * random_in_unit_sphere());
 						attenuation = albedo;
 						return (dot(scattered.direction, record.normal) > 0);
 					}
-					else if (this.type == 2) {
+					else if (type == 2) {
 						vec3 outward_normal;
 						vec3 reflected = reflect(normalize(r.direction), record.normal);
 
@@ -255,23 +251,14 @@ Shader "Unlit/SingleColor"
 				}
 			};
 
-			static const uint NUMBER_OF_SPHERES = 5;
-			static const sphere WORLD[NUMBER_OF_SPHERES] = {
-				{ vec3(0.0, 0.0, -1.0), 0.5, vec3(0.8, 0.3, 0.3), sphere::DIFFUSE, 0.0, 1.0 },
-				{ vec3(0.0, -100.5, -1.0), 100.0, vec3(0.8, 0.8, 0.0), sphere::DIFFUSE, 0.0, 1.0 },
-				{ vec3(1.0, 0.0, -1.0), 0.5, vec3(0.8, 0.6, 0.2), sphere::METAL, 1.0, 1.0 },
-				{ vec3(-1.0, 0.0, -1.0), 0.5, vec3(1.0, 1.0, 1.0), sphere::DIELECTRIC, 0.0, 1.5 },
-				{ vec3(-1.0, 0.0, -1.0), -0.45, vec3(1.0, 1.0, 1.0), sphere::DIELECTRIC, 0.0, 1.5 }
-			};
-
 			bool intersect_world(ray r, float t_min, float t_max, out hit_record record) {
 				hit_record temp_record;
 				bool intersected = false;
 				float closest = t_max;
 
-				for (uint i = 0; i < NUMBER_OF_SPHERES; i++) {
-					sphere s = WORLD[i];
-					if (s.intersect(r, t_min, closest, temp_record)) {
+				for (uint i = 0; i < _NumberOfSpheres; i++) {
+					
+					if (sphere::intersect(i, r, t_min, closest, temp_record)) {
 						intersected = true;
 						closest = temp_record.t;
 						record = temp_record;
@@ -299,7 +286,7 @@ Shader "Unlit/SingleColor"
 					ray scattered;
 					vec3 attenuation;
 
-					WORLD[record.index].scatter(r, record, attenuation, scattered);
+					sphere::scatter(record.index, r, record, attenuation, scattered);
 
 					r = scattered;
 					color *= attenuation; // may absorb some energy.
@@ -322,8 +309,7 @@ Shader "Unlit/SingleColor"
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float aspect = _ScreenParams.x / _ScreenParams.y;
-				vec3 forward = vec3(UNITY_MATRIX_V._13, UNITY_MATRIX_V._23, UNITY_MATRIX_V._33); //mul(vec4(0.0, 0.0, 1.0, 1.0), UNITY_MATRIX_V);
-				camera cam = camera::create(_WorldSpaceCameraPos, _WorldSpaceCameraPos + forward, vec3(0.0, 1.0, 0.0), _CameraFOV, aspect);
+				camera cam = camera::create(_WorldSpaceCameraPos, _WorldSpaceCameraPos + _CameraForward, vec3(0.0, 1.0, 0.0), _CameraFOV, aspect);
 
 				float u = i.uv.x;
 				float v = i.uv.y;

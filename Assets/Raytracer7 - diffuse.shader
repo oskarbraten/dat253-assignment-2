@@ -1,11 +1,4 @@
-﻿// Fra https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html
-//https://msdn.microsoft.com/en-us/library/windows/desktop/bb509640(v=vs.85).aspx
-//https://msdn.microsoft.com/en-us/library/windows/desktop/ff471421(v=vs.85).aspx
-// http://www.reedbeta.com/blog/2013/01/12/quick-and-easy-gpu-random-numbers-in-d3d11/
-// https://docs.unity3d.com/Manual/RenderDocIntegration.html
-// https://docs.unity3d.com/Manual/SL-ShaderPrograms.html
-
-Shader "Unlit/SingleColor"
+﻿Shader "Unlit/SingleColor"
 {
 	SubShader
 	{
@@ -46,23 +39,15 @@ Shader "Unlit/SingleColor"
 			static float rand_seed = 12.0;
 			static float2 rand_uv = float2(0.0, 0.0);
 
-			// Gold Noise ©2015 dcerisano@standard3d.com
-			// - based on the Golden Ratio, PI and the Square Root of Two
-			// - superior distribution
-			// - fastest static noise generator function
-			// - works with all chipsets (including low precision)
-
-			static const float PHI = 1.61803398874989484820459 * 00000.1; // Golden Ratio   
-			static const float PI = 3.14159265358979323846264 * 00000.1; // PI
-			static const float SQ2 = 1.41421356237309504880169 * 10000.0; // Square Root of Two
-
-			float gold_noise(in vec2 coordinate, in float seed) {
-				return frac(sin(distance(coordinate * (seed + PHI), vec2(PHI, PI))) * SQ2);
+			float noise(in vec2 coordinate) {
+				float2 noise = frac(sin(dot(coordinate, float2(12.9898, 78.233) * 2.0)) * 43758.5453);
+				return abs(noise.x + noise.y) * 0.5;
 			}
 
 			static float random_number() {
-				float random = gold_noise(rand_uv, rand_seed);
-				rand_seed += 1.0;
+				float2 uv = float2(rand_uv.x + rand_seed, rand_uv.y + rand_seed);
+				float random = noise(uv);
+				rand_seed += 0.21342;
 
 				return random;
 			}

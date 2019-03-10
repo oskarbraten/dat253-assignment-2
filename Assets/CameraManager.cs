@@ -1,9 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-[ExecuteInEditMode]
 public class CameraManager : MonoBehaviour
 {
     private new Camera camera;
@@ -17,7 +14,6 @@ public class CameraManager : MonoBehaviour
 
     void Update()
     {
-
         material.SetVector("_CameraForward", camera.transform.forward);
         material.SetVector("_CameraUp", camera.transform.up);
         material.SetFloat("_CameraFOV", camera.fieldOfView);

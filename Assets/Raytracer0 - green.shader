@@ -1,14 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Fra https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html
-//https://msdn.microsoft.com/en-us/library/windows/desktop/bb509640(v=vs.85).aspx
-//https://msdn.microsoft.com/en-us/library/windows/desktop/ff471421(v=vs.85).aspx
-// rand num generator http://gamedev.stackexchange.com/questions/32681/random-number-hlsl
-// http://www.reedbeta.com/blog/2013/01/12/quick-and-easy-gpu-random-numbers-in-d3d11/
-// https://docs.unity3d.com/Manual/RenderDocIntegration.html
-// https://docs.unity3d.com/Manual/SL-ShaderPrograms.html
-
-Shader "Unlit/SingleColor"
+﻿Shader "Unlit/SingleColor"
 {
 		SubShader{ Pass	{
 			
@@ -38,8 +28,6 @@ Shader "Unlit/SingleColor"
 		o.uv = v.uv;
 		return o;
 	}
-	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	fixed4 frag(v2f i) : SV_Target
 	{
@@ -47,8 +35,6 @@ Shader "Unlit/SingleColor"
 
 		return fixed4(col,1); 
 	}
-////////////////////////////////////////////////////////////////////////////////////
-
 
 ENDCG
 
