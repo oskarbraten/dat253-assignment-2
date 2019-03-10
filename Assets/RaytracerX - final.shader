@@ -1,5 +1,10 @@
 ﻿Shader "Unlit/SingleColor"
 {
+	Properties{
+		_NumberOfSamples ("Number of samples", Int) = 10
+		_MaximumDepth ("Maximum depth", Int) = 25
+		[MaterialToggle] _Antialiasing ("Anti-aliasing", Float) = 1
+	}
 	SubShader
 	{
 		Pass
@@ -7,8 +12,6 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-
-			#include "UnityCG.cginc"
 
 			typedef vector <float, 4> vec4;
 			typedef vector <float, 3> vec3;
@@ -36,8 +39,9 @@
 				return o;
 			}
 
-			static const uint MAXIMUM_DEPTH = 25;
-			static const uint NUMBER_OF_SAMPLES = 10;
+			uniform uint _MaximumDepth;
+			uniform uint _NumberOfSamples;
+			uniform uint _Antialiasing;
 
 			static const uint MAX_NUMBER_OF_SPHERES = 500; // do not modify.
 
@@ -281,7 +285,7 @@
 				hit_record record;
 
 				uint i = 0;
-				while ((i <= MAXIMUM_DEPTH) && intersect_world(r, 0.001, 100000.0, record)) {
+				while ((i <= _MaximumDepth) && intersect_world(r, 0.001, 100000.0, record)) {
 
 					ray scattered;
 					vec3 attenuation;
@@ -294,7 +298,7 @@
 					i += 1;
 				}
 
-				if (i == MAXIMUM_DEPTH) {
+				if (i == _MaximumDepth) {
 					return vec3(0.0, 0.0, 0.0);
 				}
 				else {
@@ -309,7 +313,7 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float aspect = _ScreenParams.x / _ScreenParams.y;
-				camera cam = camera::create(_WorldSpaceCameraPos, _WorldSpaceCameraPos + _CameraForward, vec3(0.0, 1.0, 0.0), _CameraFOV, aspect);
+				camera cam = camera::create(_WorldSpaceCameraPos, _WorldSpaceCameraPos + _CameraForward, _CameraUp, _CameraFOV, aspect);
 
 				float u = i.uv.x;
 				float v = i.uv.y;
@@ -317,15 +321,15 @@
 
 				col3 col = col3(0.0, 0.0, 0.0);
 
-				for (uint i = 0; i < NUMBER_OF_SAMPLES; i++) {
-					float du = random_number() / _ScreenParams.x;
-					float dv = random_number() / _ScreenParams.y;
+				for (uint i = 0; i < _NumberOfSamples; i++) {
+					float du = (random_number() / _ScreenParams.x) * _Antialiasing;
+					float dv = (random_number() / _ScreenParams.y) * _Antialiasing;
 
 					ray r = cam.get_ray(u + du, v + dv);
 					col += col3(trace(r));
 				}
 
-				col /= NUMBER_OF_SAMPLES;
+				col /= _NumberOfSamples;
 
 				col = sqrt(col); // gamma correction.
 
