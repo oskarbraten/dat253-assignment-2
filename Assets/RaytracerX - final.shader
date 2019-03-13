@@ -28,15 +28,21 @@
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;
+				float3 ray_direction : TEXCOORD1;
 				float4 vertex : SV_POSITION;
 			};
+
+			uniform float4x4 _InverseProjection;
 	
-			v2f vert(appdata v)
+			v2f vert(appdata data_in)
 			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = v.uv;
-				return o;
+				float4 pos = UnityObjectToClipPos(data_in.vertex);
+
+				v2f data_out;
+				data_out.vertex = pos;
+				data_out.ray_direction = mul(_InverseProjection, float4(pos.x, pos.y, -1.0, 1.0));
+				data_out.uv = data_in.uv;
+				return data_out;
 			}
 
 			uniform uint _MaximumDepth;
@@ -44,6 +50,16 @@
 			uniform uint _Antialiasing;
 
 			static const uint MAX_NUMBER_OF_SPHERES = 500; // do not modify.
+
+			uniform uint _NumberOfSpheres;
+
+			uniform float4 _SpherePosition[MAX_NUMBER_OF_SPHERES];
+			uniform float _SphereRadius[MAX_NUMBER_OF_SPHERES];
+
+			uniform fixed4 _SphereMaterialAlbedo[MAX_NUMBER_OF_SPHERES];
+			uniform float _SphereMaterialType[MAX_NUMBER_OF_SPHERES];
+			uniform float _SphereMaterialFuzz[MAX_NUMBER_OF_SPHERES];
+			uniform float _SphereMaterialRefractiveIndex[MAX_NUMBER_OF_SPHERES];
 
 			static float rand_seed = 12.0;
 			static float2 rand_uv = float2(0.0, 0.0);
@@ -112,51 +128,6 @@
 					return origin + t*direction;
 				}
 			};
-
-			static const float M_PI = 3.14159265f;
-
-			struct camera
-			{
-				vec3 origin;
-				vec3 horizontal;
-				vec3 vertical;
-				vec3 lower_left_corner;
-
-				ray get_ray(float s, float t) {
-					return ray::from(origin, lower_left_corner + s * horizontal + t * vertical - origin);
-				}
-
-				static camera create(vec3 look_from, vec3 look_at, vec3 up, float vfov, float aspect) {
-					camera c;
-					c.origin = look_from;
-
-					vec3 u, v, w;
-
-					float theta = vfov * M_PI / 180.0;
-					float half_height = tan(theta / 2.0);
-					float half_width = aspect * half_height;
-
-					w = normalize(look_from - look_at);
-					u = normalize(cross(up, w));
-					v = cross(w, u);
-
-					c.lower_left_corner = look_from - half_width * u - half_height * v - w;
-					c.horizontal = 2 * half_width * u;
-					c.vertical = 2 * half_height * v;
-
-					return c;
-				}
-			};
-
-			uint _NumberOfSpheres;
-
-			float4 _SpherePosition[MAX_NUMBER_OF_SPHERES];
-			float _SphereRadius[MAX_NUMBER_OF_SPHERES];
-
-			fixed4 _SphereMaterialAlbedo[MAX_NUMBER_OF_SPHERES];
-			float _SphereMaterialType[MAX_NUMBER_OF_SPHERES];
-			float _SphereMaterialFuzz[MAX_NUMBER_OF_SPHERES];
-			float _SphereMaterialRefractiveIndex[MAX_NUMBER_OF_SPHERES];
 
 			struct sphere
 			{
@@ -306,26 +277,23 @@
 				}
 			}
 
-			float _CameraFOV;
-			float4 _CameraForward;
-			float4 _CameraUp;
-
-			fixed4 frag(v2f i) : SV_Target
+			fixed4 frag(v2f data_in) : SV_Target
 			{
-				float aspect = _ScreenParams.x / _ScreenParams.y;
-				camera cam = camera::create(_WorldSpaceCameraPos, _WorldSpaceCameraPos + _CameraForward, _CameraUp, _CameraFOV, aspect);
+				float3 direction = normalize(data_in.ray_direction);
 
-				float u = i.uv.x;
-				float v = i.uv.y;
+				float u = data_in.uv.x;
+				float v = data_in.uv.y;
 				rand_uv = float2(u, v); // initialize random generator seed.
 
 				col3 col = col3(0.0, 0.0, 0.0);
 
 				for (uint i = 0; i < _NumberOfSamples; i++) {
-					float du = (random_number() / _ScreenParams.x) * _Antialiasing;
-					float dv = (random_number() / _ScreenParams.y) * _Antialiasing;
+					float du = (random_number() / _ScreenParams.x);
+					float dv = (random_number() / _ScreenParams.y);
+					float3 aa = float3(du, dv, 0.0) * _Antialiasing;
 
-					ray r = cam.get_ray(u + du, v + dv);
+					ray r = ray::from(float3(0.0, 0.0, 0.0), direction + aa);
+
 					col += col3(trace(r));
 				}
 

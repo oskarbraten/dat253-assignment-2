@@ -4,7 +4,9 @@ using UnityEngine.UI;
 public class SphereManager : MonoBehaviour
 {
     private Material material;
-    const int NUMBER_OF_SPHERES = 40; // max is defined in shader as 500.
+    public int numberOfSpheres = 40; // max is defined in shader as 500.
+
+    public bool paused = false;
 
     private GameObject[] spheres;
 
@@ -12,12 +14,12 @@ public class SphereManager : MonoBehaviour
     {
         material = GameObject.Find("Image").GetComponent<Image>().material;
 
-        material.SetInt("_NumberOfSpheres", NUMBER_OF_SPHERES);
+        material.SetInt("_NumberOfSpheres", numberOfSpheres);
         
         GameObject sphereTemplate = GameObject.Find("SphereTemplate");
-        spheres = new GameObject[NUMBER_OF_SPHERES];
+        spheres = new GameObject[numberOfSpheres];
 
-        for (int i = 0; i < NUMBER_OF_SPHERES; i++)
+        for (int i = 0; i < numberOfSpheres; i++)
         {
             GameObject sphere = Instantiate(sphereTemplate);
             sphere.name = "Sphere" + (i + 1);
@@ -43,6 +45,8 @@ public class SphereManager : MonoBehaviour
             mat.fuzz = Random.Range(0.0f, 1.0f);
             mat.refractive_index = Random.Range(1.31f, 2.42f); // Ice to diamond.
 
+            sphere.GetComponent<Rigidbody>().SetDensity(1.0f);
+
             spheres[i] = sphere;
         }
 
@@ -51,8 +55,8 @@ public class SphereManager : MonoBehaviour
 
         planet.name = "Planet";
 
-        planet.transform.position = new Vector4(0.0f, -3000.5f, -1.0f, 1.0f);
-        planet.transform.localScale = new Vector3(6000.0f, 6000.0f, 6000.0f);
+        planet.transform.position = new Vector4(0.0f, -5000.5f, 0.0f, 1.0f);
+        planet.transform.localScale = new Vector3(10000.0f, 10000.0f, 10000.0f);
         var planet_material = planet.GetComponent<SphereMaterial>();
         planet_material.albedo = new Color(0.5f, 0.5f, 0.5f);
         planet_material.type = 0;
@@ -62,19 +66,30 @@ public class SphereManager : MonoBehaviour
 
     void Update()
     {
-        // upload updated sphere positions.
-        Vector4[] position = new Vector4[NUMBER_OF_SPHERES];
-        float[] radius = new float[NUMBER_OF_SPHERES];
+        if (paused)
+        {
+            Time.timeScale = 0;
+        } else
+        {
+            Time.timeScale = 1.0f;
+        }
 
-        Color[] albedo = new Color[NUMBER_OF_SPHERES];
-        float[] type = new float[NUMBER_OF_SPHERES];
-        float[] fuzz = new float[NUMBER_OF_SPHERES];
-        float[] refractive_index = new float[NUMBER_OF_SPHERES];
+        // upload camera inverse projection matrix:
+        material.SetMatrix("_InverseProjection", Camera.main.projectionMatrix.inverse);
 
-        for (int i = 0; i < NUMBER_OF_SPHERES; i++)
+        // upload sphere attributes:
+        Vector4[] position = new Vector4[numberOfSpheres];
+        float[] radius = new float[numberOfSpheres];
+
+        Color[] albedo = new Color[numberOfSpheres];
+        float[] type = new float[numberOfSpheres];
+        float[] fuzz = new float[numberOfSpheres];
+        float[] refractive_index = new float[numberOfSpheres];
+
+        for (int i = 0; i < numberOfSpheres; i++)
         {
             GameObject sphere = spheres[i];
-            position[i] = sphere.transform.position;
+            position[i] = Camera.main.worldToCameraMatrix.MultiplyPoint(sphere.transform.position);
             radius[i] = sphere.transform.localScale.x / 2.0f;
 
             SphereMaterial material = sphere.GetComponent<SphereMaterial>();
@@ -82,7 +97,6 @@ public class SphereManager : MonoBehaviour
             type[i] = material.type;
             fuzz[i] = material.fuzz;
             refractive_index[i] = material.refractive_index;
-
         }
 
         // upload to material:

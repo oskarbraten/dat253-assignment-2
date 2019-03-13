@@ -141,6 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09528b99d27e6540bcfce8e6e4c53f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  numberOfSpheres: 20
 --- !u!4 &515252498
 Transform:
   m_ObjectHideFlags: 0
@@ -615,7 +616,6 @@ GameObject:
   - component: {fileID: 2123636469}
   - component: {fileID: 2123636467}
   - component: {fileID: 2123636466}
-  - component: {fileID: 2123636468}
   - component: {fileID: 2123636471}
   m_Layer: 0
   m_Name: Main Camera
@@ -640,18 +640,6 @@ Behaviour:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2123636465}
   m_Enabled: 1
---- !u!114 &2123636468
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2123636465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e015396454f38af438570259f8d9b658, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!20 &2123636469
 Camera:
   m_ObjectHideFlags: 0
@@ -726,4 +714,3 @@ MonoBehaviour:
   targetDirection: {x: 0, y: 0}
   targetCharacterDirection: {x: 0, y: 0}
   moveSensitivity: 0.1
-  characterBody: {fileID: 0}

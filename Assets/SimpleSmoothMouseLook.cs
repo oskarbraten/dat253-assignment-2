@@ -8,23 +8,15 @@ public class SimpleSmoothMouseLook : MonoBehaviour
 
     public Vector2 clampInDegrees = new Vector2(360, 180);
     public Vector2 sensitivity = new Vector2(2, 2);
-    public Vector2 smoothing = new Vector2(3, 3);
+    public Vector2 smoothing = new Vector2(1, 1);
     public Vector2 targetDirection;
     public Vector2 targetCharacterDirection;
     public float moveSensitivity = 1.0f;
-
-    // Assign this if there's a parent object controlling motion, such as a Character Controller.
-    // Yaw rotation will affect this object instead of the camera if set.
-    public GameObject characterBody;
 
     void Start()
     {
         // Set target direction to the camera's initial orientation.
         targetDirection = transform.localRotation.eulerAngles;
-
-        // Set target direction for the character body to its inital state.
-        if (characterBody)
-            targetCharacterDirection = characterBody.transform.localRotation.eulerAngles;
     }
 
     void Update()
@@ -72,37 +64,31 @@ public class SimpleSmoothMouseLook : MonoBehaviour
             transform.localRotation = Quaternion.AngleAxis(-_mouseAbsolute.y, targetOrientation * Vector3.right) * targetOrientation;
 
             // If there's a character body that acts as a parent to the camera
-            if (characterBody)
-            {
-                var yRotation = Quaternion.AngleAxis(_mouseAbsolute.x, Vector3.up);
-                characterBody.transform.localRotation = yRotation * targetCharacterOrientation;
-            }
-            else
-            {
-                var yRotation = Quaternion.AngleAxis(-_mouseAbsolute.x, transform.InverseTransformDirection(Vector3.up));
-                transform.localRotation *= yRotation;
-            }
-
+            var yRotation = Quaternion.AngleAxis(_mouseAbsolute.x, transform.InverseTransformDirection(Vector3.up));
+            transform.localRotation *= yRotation;
         }
+
+        Vector3 forward = transform.forward * moveSensitivity;
+        Vector3 right = transform.right * moveSensitivity;
 
         if (Input.GetKey(KeyCode.W))
         {
-            transform.position += transform.forward * moveSensitivity;
+            transform.position += forward;
         }
 
         if (Input.GetKey(KeyCode.S))
         {
-            transform.position += transform.forward * -moveSensitivity;
+            transform.position -= forward;
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            transform.position += transform.right * moveSensitivity;
+            transform.position -= right;
         }
 
         if (Input.GetKey(KeyCode.D))
         {
-            transform.position += transform.right * -moveSensitivity;
+            transform.position += right;
         }
     }
 }
