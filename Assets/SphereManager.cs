@@ -76,6 +76,7 @@ public class SphereManager : MonoBehaviour
 
         // upload camera inverse projection matrix:
         material.SetMatrix("_InverseProjection", Camera.main.projectionMatrix.inverse);
+        material.SetMatrix("_CameraMatrix", Camera.main.cameraToWorldMatrix);
 
         // upload sphere attributes:
         Vector4[] position = new Vector4[numberOfSpheres];
