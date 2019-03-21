@@ -45,6 +45,8 @@
 				return data_out;
 			}
 
+			uniform float4x4 _CameraMatrix;
+
 			uniform uint _MaximumDepth;
 			uniform uint _NumberOfSamples;
 			uniform uint _Antialiasing;
@@ -245,7 +247,8 @@
 			}
 
 			vec3 background(ray r) {
-				float t = 0.5 * (normalize(r.direction).y + 1.0);
+				float3 direction = mul(_CameraMatrix, r.direction).xyz;
+				float t = 0.5 * (normalize(direction).y + 1.0);
 				return lerp(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.7, 1.0), t);
 			}
 
