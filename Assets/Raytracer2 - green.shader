@@ -31,9 +31,8 @@
 
 	fixed4 frag(v2f i) : SV_Target
 	{
-		col3 col = col3(0,1,0);
-
-		return fixed4(col,1); 
+		col3 col = col3(i.uv.x, i.uv.y, 0.2);
+		return fixed4(col, 1.0); 
 	}
 
 ENDCG

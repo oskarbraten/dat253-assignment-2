@@ -49,18 +49,48 @@
 				}
 			};
 
+			struct sphere
+			{
+				vec3 center;
+				float radius;
+
+				static sphere from(vec3 center, float radius) {
+					sphere s;
+					s.center = center;
+					s.radius = radius;
+
+					return s;
+				}
+
+				bool intersect(ray r) {
+					vec3 oc = r.origin - center;
+					float a = dot(r.direction, r.direction);
+					float b = dot(oc, r.direction);
+					float c = dot(oc, oc) - radius*radius;
+
+					float discriminant = b * b - a * c;
+
+					return (discriminant > 0);
+				}
+			};
+
 			vec3 background(ray r) {
 				float t = 0.5 * (normalize(r.direction).y + 1.0);
 				return lerp(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.7, 1.0), t);
 			}
 
 			vec3 trace(ray r) {
-				return background(r);
+				sphere s = sphere::from(vec3(0.0, 0.0, -1.0), 0.5);
+
+				if (s.intersect(r)) {
+					return vec3(1.0, 0.0, 0.0);
+				} else {
+					return background(r);
+				}
 			}
 	
 			fixed4 frag(v2f i) : SV_Target
 			{
-
 				vec3 lower_left_corner = {-2, -1, -1};
 				vec3 horizontal = {4, 0, 0};
 				vec3 vertical = {0, 2, 0};
@@ -70,10 +100,8 @@
 				float v = i.uv.y;
 
 				ray r = ray::from(origin, lower_left_corner + u*horizontal + v*vertical);
-
-				col3 col = col3(trace(r));
-
-				return fixed4(col,1);
+				
+				return fixed4(trace(r), 1.0);
 			}
 			
 			ENDCG

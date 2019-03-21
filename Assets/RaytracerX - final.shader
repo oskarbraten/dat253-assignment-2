@@ -283,7 +283,7 @@
 
 				float u = data_in.uv.x;
 				float v = data_in.uv.y;
-				rand_uv = float2(u, v); // initialize random generator seed.
+				rand_uv = data_in.uv; // initialize random generator seed.
 
 				col3 col = col3(0.0, 0.0, 0.0);
 

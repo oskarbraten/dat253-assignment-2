@@ -304,7 +304,7 @@
 
 				float u = i.uv.x;
 				float v = i.uv.y;
-				rand_uv = float2(u, v); // initialize random generator seed.
+				rand_uv = i.uv; // initialize random generator seed.
 
 				col3 col = col3(0.0, 0.0, 0.0);
 

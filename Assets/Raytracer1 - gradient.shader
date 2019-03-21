@@ -34,8 +34,8 @@
 		float u = i.uv.x;
 		float v = i.uv.y;
 
-		col3 col = col3(u,v,0);
-
+		col3 col = col3(u, v, 0.0);
+	
 		return fixed4(col,1);
 	}
 
