@@ -33,10 +33,10 @@
 				return o;
 			}
 
-			static const uint MAXIMUM_DEPTH = 25;
+			static const uint MAXIMUM_DEPTH = 15;
 			static const uint NUMBER_OF_SAMPLES = 20;
 
-			static float rand_seed = 12.0;
+			static float rand_seed = 0.0;
 			static float2 rand_uv = float2(0.0, 0.0);
 
 			float noise(in vec2 coordinate) {
@@ -47,7 +47,7 @@
 			static float random_number() {
 				float2 uv = float2(rand_uv.x + rand_seed, rand_uv.y + rand_seed);
 				float random = noise(uv);
-				rand_seed += 0.21342;
+				rand_seed += 0.01;
 
 				return random;
 			}
@@ -187,7 +187,7 @@
 					vec3 target = record.position + record.normal + random_in_unit_sphere();
 					r = ray::from(record.position, target - record.position);
 
-					color *= 0.5; // absorbs 50% of the energy.
+					color *= 0.5;
 
 					i += 1;
 				}

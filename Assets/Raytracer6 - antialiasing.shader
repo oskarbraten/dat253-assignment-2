@@ -33,7 +33,7 @@
 				return o;
 			}
 
-			static const uint NUMBER_OF_SAMPLES = 16;
+			static const uint NUMBER_OF_SAMPLES = 20;
 
 			static float rand_seed = 0.0;
 			static float2 rand_uv = float2(0.0, 0.0);

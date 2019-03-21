@@ -267,7 +267,7 @@
 					sphere::scatter(record.index, r, record, attenuation, scattered);
 
 					r = scattered;
-					color *= attenuation; // may absorb some energy.
+					color *= attenuation;
 
 					i += 1;
 				}

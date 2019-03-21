@@ -36,7 +36,7 @@
 			static const uint MAXIMUM_DEPTH = 40;
 			static const uint NUMBER_OF_SAMPLES = 50;
 
-			static float rand_seed = 12.0;
+			static float rand_seed = 0.0;
 			static float2 rand_uv = float2(0.0, 0.0);
 
 			float noise(in vec2 coordinate) {
@@ -47,7 +47,7 @@
 			static float random_number() {
 				float2 uv = float2(rand_uv.x + rand_seed, rand_uv.y + rand_seed);
 				float random = noise(uv);
-				rand_seed += 0.21342;
+				rand_seed += 0.01;
 
 				return random;
 			}
@@ -285,7 +285,7 @@
 					WORLD[record.index].scatter(r, record, attenuation, scattered);
 
 					r = scattered;
-					color *= attenuation; // may absorb some energy.
+					color *= attenuation;
 
 					i += 1;
 				}
