@@ -90,7 +90,7 @@ public class SphereManager : MonoBehaviour
         for (int i = 0; i < numberOfSpheres; i++)
         {
             GameObject sphere = spheres[i];
-            position[i] = Camera.main.worldToCameraMatrix.MultiplyPoint(sphere.transform.position);
+            position[i] = sphere.transform.position;
             radius[i] = sphere.transform.localScale.x / 2.0f;
 
             SphereMaterial material = sphere.GetComponent<SphereMaterial>();

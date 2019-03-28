@@ -29,10 +29,12 @@
 			{
 				float2 uv : TEXCOORD0;
 				float3 ray_direction : TEXCOORD1;
+				float3 ray_origin : TEXCOORD2;
 				float4 vertex : SV_POSITION;
 			};
 
 			uniform float4x4 _InverseProjection;
+			uniform float4x4 _CameraMatrix;
 	
 			v2f vert(appdata data_in)
 			{
@@ -40,12 +42,11 @@
 
 				v2f data_out;
 				data_out.vertex = pos;
-				data_out.ray_direction = mul(_InverseProjection, float4(pos.x, pos.y, -1.0, 1.0));
+				data_out.ray_direction = mul(_CameraMatrix, vec4(mul(_InverseProjection, float4(pos.x, pos.y, -1.0, 1.0)).xyz, 0.0));
+				data_out.ray_origin = vec3(_CameraMatrix[3][0], _CameraMatrix[3][1], _CameraMatrix[3][2]);
 				data_out.uv = data_in.uv;
 				return data_out;
 			}
-
-			uniform float4x4 _CameraMatrix;
 
 			uniform uint _MaximumDepth;
 			uniform uint _NumberOfSamples;
@@ -247,8 +248,7 @@
 			}
 
 			vec3 background(ray r) {
-				float3 direction = mul(_CameraMatrix, r.direction).xyz;
-				float t = 0.5 * (normalize(direction).y + 1.0);
+				float t = 0.5 * (normalize(r.direction).y + 1.0);
 				return lerp(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.7, 1.0), t);
 			}
 
@@ -283,6 +283,7 @@
 			fixed4 frag(v2f data_in) : SV_Target
 			{
 				float3 direction = normalize(data_in.ray_direction);
+				float3 origin = data_in.ray_origin;
 
 				float u = data_in.uv.x;
 				float v = data_in.uv.y;
@@ -295,7 +296,7 @@
 					float dv = (random_number() / _ScreenParams.y);
 					float3 aa = float3(du, dv, 0.0) * _Antialiasing;
 
-					ray r = ray::from(float3(0.0, 0.0, 0.0), direction + aa);
+					ray r = ray::from(origin, direction + aa);
 
 					col += col3(trace(r));
 				}
