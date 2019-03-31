@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numberOfSpheres: 20
+  paused: 0
 --- !u!4 &515252498
 Transform:
   m_ObjectHideFlags: 0

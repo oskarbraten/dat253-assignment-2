@@ -200,7 +200,7 @@
 				hit_record record;
 
 				uint i = 0;
-				while ((i <= MAXIMUM_DEPTH) && intersect_world(r, 0.001, 100000.0, record)) {
+				while ((i < MAXIMUM_DEPTH) && intersect_world(r, 0.001, 100000.0, record)) {
 
 					ray scattered;
 					vec3 attenuation;

@@ -182,7 +182,7 @@
 				hit_record record;
 
 				uint i = 0;
-				while ((i <= MAXIMUM_DEPTH) && intersect_world(r, 0.001, 100000.0, record)) {
+				while ((i < MAXIMUM_DEPTH) && intersect_world(r, 0.001, 100000.0, record)) {
 
 					vec3 target = record.position + record.normal + random_in_unit_sphere();
 					r = ray::from(record.position, target - record.position);

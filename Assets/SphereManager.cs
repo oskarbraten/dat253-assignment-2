@@ -47,6 +47,12 @@ public class SphereManager : MonoBehaviour
 
             sphere.GetComponent<Rigidbody>().SetDensity(1.0f);
 
+            // destroy the rigidbody of some (approx. 50%) of the spheres
+            if (Random.Range(0.0f, 1.0f) < 0.5)
+            {
+                Destroy(sphere.GetComponent<Rigidbody>());
+            }
+
             spheres[i] = sphere;
         }
 
@@ -55,8 +61,8 @@ public class SphereManager : MonoBehaviour
 
         planet.name = "Planet";
 
-        planet.transform.position = new Vector4(0.0f, -5000.5f, 0.0f, 1.0f);
-        planet.transform.localScale = new Vector3(10000.0f, 10000.0f, 10000.0f);
+        planet.transform.position = new Vector4(0.0f, -500.5f, 0.0f, 1.0f);
+        planet.transform.localScale = new Vector3(1000.0f, 1000.0f, 1000.0f);
         var planet_material = planet.GetComponent<SphereMaterial>();
         planet_material.albedo = new Color(0.5f, 0.5f, 0.5f);
         planet_material.type = 0;

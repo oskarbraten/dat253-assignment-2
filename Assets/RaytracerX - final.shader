@@ -29,7 +29,6 @@
 			{
 				float2 uv : TEXCOORD0;
 				float3 ray_direction : TEXCOORD1;
-				float3 ray_origin : TEXCOORD2;
 				float4 vertex : SV_POSITION;
 			};
 
@@ -43,7 +42,6 @@
 				v2f data_out;
 				data_out.vertex = pos;
 				data_out.ray_direction = mul(_CameraMatrix, vec4(mul(_InverseProjection, float4(pos.x, pos.y, -1.0, 1.0)).xyz, 0.0));
-				data_out.ray_origin = vec3(_CameraMatrix[3][0], _CameraMatrix[3][1], _CameraMatrix[3][2]);
 				data_out.uv = data_in.uv;
 				return data_out;
 			}
@@ -259,7 +257,7 @@
 				hit_record record;
 
 				uint i = 0;
-				while ((i <= _MaximumDepth) && intersect_world(r, 0.001, 100000.0, record)) {
+				while ((i < _MaximumDepth) && intersect_world(r, 0.001, 100000.0, record)) {
 
 					ray scattered;
 					vec3 attenuation;
@@ -283,7 +281,7 @@
 			fixed4 frag(v2f data_in) : SV_Target
 			{
 				float3 direction = normalize(data_in.ray_direction);
-				float3 origin = data_in.ray_origin;
+				float3 origin = _WorldSpaceCameraPos;
 
 				float u = data_in.uv.x;
 				float v = data_in.uv.y;

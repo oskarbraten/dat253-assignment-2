@@ -67,10 +67,10 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _MaximumDepth: 25
+    - _MaximumDepth: 10
     - _Metallic: 0
     - _Mode: 0
-    - _NumberOfSamples: 20
+    - _NumberOfSamples: 10
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
